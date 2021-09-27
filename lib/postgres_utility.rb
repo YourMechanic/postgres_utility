@@ -5,6 +5,7 @@ require_relative "postgres_utility/version"
 # rubocop:disable Layout/LineLength, Metrics/ModuleLength
 
 require 'English'
+require 'active_record'
 
 module PostgresUtility
   extend self
