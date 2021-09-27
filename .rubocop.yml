@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.6
 
 Style/StringLiterals:
   Enabled: true
@@ -9,5 +9,24 @@ Style/StringLiteralsInInterpolation:
   Enabled: true
   EnforcedStyle: double_quotes
 
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false
+
 Layout/LineLength:
   Max: 120
+
+Metrics/MethodLength:
+  Max: 25
+Metrics/ClassLength:
+  Max: 300
+Metrics/BlockLength:
+  Max: 50

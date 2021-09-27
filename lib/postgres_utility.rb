@@ -4,9 +4,10 @@ require_relative "postgres_utility/version"
 
 # rubocop:disable Layout/LineLength, Metrics/ModuleLength
 
-require 'English'
-require 'active_record'
+require "English"
+require "active_record"
 
+# PostgresUtility module
 module PostgresUtility
   extend self
 
@@ -23,11 +24,11 @@ module PostgresUtility
     db_list = rails_connection
               .select_values("SELECT version FROM
                   #{ActiveRecord::Migrator.schema_migrations_table_name}")
-    db_list.map! { |version| '%.3d' % version }
+    db_list.map! { |version| format("%.3d", version) }
     ActiveRecord::Migrator.migrations_paths.each do |path|
       Dir.foreach(Rails.root.join(path)) do |file|
         # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
-        if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
+        if match_data == /^(\d{3,})_(.+)\.rb$/.match(file)
           is_up = db_list.delete(match_data[1])
           return true unless is_up
         end
@@ -59,7 +60,7 @@ module PostgresUtility
   end
 
   def db_version
-    rails_connection.select_value('select version();')
+    rails_connection.select_value("select version();")
   end
 
   def db_size
@@ -69,7 +70,7 @@ module PostgresUtility
   # Returns true if created, false if already exists, raise if failed.
   def create_database
     # Stolen from activerecord-3.2.3\lib\active_record\railties\databases.rake
-    raise 'Not implemented' unless postgresql?
+    raise "Not implemented" unless postgresql?
 
     begin
       rails_connection.create_database(db_name)
@@ -105,11 +106,11 @@ module PostgresUtility
   # rubocop:disable Metrics/MethodLength
 
   def copy_table_query(src_table_class, dest_table_class, opts = {})
-    if !src_table_class.respond_to?(:table_name)
+    unless src_table_class.respond_to?(:table_name)
       raise StandardError,
             "#{src_table_class} must be an ActiveRecord::Base Class"
     end
-    if !dest_table_class.respond_to?(:table_name)
+    unless dest_table_class.respond_to?(:table_name)
       raise StandardError,
             "#{dest_table_class} must be an ActiveRecord::Base Class"
     end
@@ -117,37 +118,37 @@ module PostgresUtility
     conn = rails_connection(opts[:cls])
     src_table  = src_table_class.table_name
     dest_table = dest_table_class.table_name
-    raise StandardError, "#{src_table} Table missing!" if !conn.tables.include?(src_table)
-    raise StandardError, "#{dest_table} Table missing!" if !conn.tables.include?(dest_table)
+    raise StandardError, "#{src_table} Table missing!" unless conn.tables.include?(src_table)
+    raise StandardError, "#{dest_table} Table missing!" unless conn.tables.include?(dest_table)
 
-    query = ''
+    query = ""
     # truncate dest_table and insert into dest_table from src_table,
     # then vacuum dest_table
     query += "TRUNCATE TABLE #{dest_table};\n"
     id = dest_table_class.primary_key
-    schema = 'public'
-    schema = dest_table.split('.').first if dest_table.include?('.')
-    tbl_without_schema_name = dest_table.split('.').last
+    schema = "public"
+    schema = dest_table.split(".").first if dest_table.include?(".")
+    tbl_without_schema_name = dest_table.split(".").last
     seq_name = "#{tbl_without_schema_name}_#{id}_seq"
     # check if sequence exists
-    if dest_table_class.connection.
-       select_value("SELECT sequence_name FROM information_schema.sequences WHERE sequence_name = '#{seq_name}' AND sequence_schema = '#{schema}'").present?
+    if dest_table_class.connection
+                       .select_value("SELECT sequence_name FROM information_schema.sequences WHERE sequence_name = '#{seq_name}' AND sequence_schema = '#{schema}'").present?
       query += "ALTER SEQUENCE #{schema}.#{seq_name} RESTART;\n"
       query += "UPDATE #{dest_table} SET #{id} = DEFAULT;\n"
     end
     query += "INSERT INTO #{dest_table} SELECT * FROM #{src_table};"
 
-    if !opts[:do_not_truncate_src]
+    unless opts[:do_not_truncate_src]
       # truncate src_table and get it primed for next time
       query += "TRUNCATE TABLE #{src_table};\n"
       id = src_table_class.primary_key
-      schema = 'public'
-      schema = src_table.split('.').first if src_table.include?('.')
-      tbl_without_schema_name = src_table.split('.').last
+      schema = "public"
+      schema = src_table.split(".").first if src_table.include?(".")
+      tbl_without_schema_name = src_table.split(".").last
       seq_name = "#{tbl_without_schema_name}_#{id}_seq"
       # check if sequence exists
-      if dest_table_class.connection.
-         select_value("SELECT sequence_name FROM information_schema.sequences WHERE sequence_name = '#{seq_name}' AND sequence_schema = '#{schema}'").present?
+      if dest_table_class.connection
+                         .select_value("SELECT sequence_name FROM information_schema.sequences WHERE sequence_name = '#{seq_name}' AND sequence_schema = '#{schema}'").present?
         query += "ALTER SEQUENCE #{schema}.#{seq_name} RESTART;\n"
         query += "UPDATE #{src_table} SET #{id} = DEFAULT;\n"
       end
@@ -158,7 +159,7 @@ module PostgresUtility
   # rubocop:enable Metrics/MethodLength
 
   def vacuum_analyze(tbl, opts = {})
-    query = ''
+    query = ""
     if tbl.respond_to?(:table_name)
       # Take care of the case where table is an ActiveRecord::Base class
       tbl = tbl.table_name
@@ -176,21 +177,23 @@ module PostgresUtility
       # Take care of the case where table is an ActiveRecord::Base class
       tbl = tbl.table_name if tbl.respond_to?(:table_name)
       if opts[:column_names].present? && opts[:column_names].is_a?(Array)
-        cols = opts[:column_names].join(',')
+        cols = opts[:column_names].join(",")
         qcopy = "COPY #{tbl}(#{cols}) TO STDOUT WITH DELIMITER ',' CSV HEADER"
       else
         qcopy = "COPY #{tbl} TO STDOUT WITH DELIMITER ',' CSV HEADER"
       end
 
       csv = []
+      # rubocop:disable Lint/AssignmentInCondition
       pg_conn.copy_data(qcopy.to_s) do
         while row = pg_conn.get_copy_data
           csv.push(row)
         end
       end
-      File.open(csv_path, 'w') do |f|
-        csv.each_slice(100000).each do |chunk|
-          f.write(chunk.join('').force_encoding('UTF-8'))
+      # rubocop:enable Lint/AssignmentInCondition
+      File.open(csv_path, "w") do |f|
+        csv.each_slice(100_000).each do |chunk|
+          f.write(chunk.join("").force_encoding("UTF-8"))
         end
       end
     end
@@ -202,13 +205,16 @@ module PostgresUtility
     qcopy = "COPY (#{query}) TO STDOUT WITH DELIMITER ',' CSV HEADER"
 
     csv = []
+    # rubocop:disable Lint/AssignmentInCondition
     pg_conn.copy_data(qcopy.to_s) do
       while row = pg_conn.get_copy_data
         csv.push(row)
       end
     end
-    File.open(csv_path, 'w') do |f|
-      f.write(csv.join('').force_encoding('UTF-8'))
+    # rubocop:enable Lint/AssignmentInCondition
+
+    File.open(csv_path, "w") do |f|
+      f.write(csv.join("").force_encoding("UTF-8"))
     end
   end
 
@@ -229,7 +235,7 @@ module PostgresUtility
       tblcls = table[:tblcls]
       csv_path = table[:csv_path]
       # Take care of the case where table is not an ActiveRecord::Base class
-      raise StandardError, "#{tblcls} must be an ActiveRecord::Base Class" if !tblcls.respond_to?(:table_name)
+      raise StandardError, "#{tblcls} must be an ActiveRecord::Base Class" unless tblcls.respond_to?(:table_name)
 
       tbl = tblcls.table_name
       tbl_copy = generate_temptable_name(tbl)
@@ -240,13 +246,13 @@ module PostgresUtility
       pg_conn.exec("CREATE TABLE #{tbl_copy} (LIKE #{tbl} INCLUDING DEFAULTS)")
       #   pg_conn.exec("DROP TABLE IF EXISTS #{tbl_copy}")
       if opts[:column_names].present? && opts[:column_names].is_a?(Array)
-        cols = opts[:column_names].join(',')
+        cols = opts[:column_names].join(",")
         qcopy = "COPY #{tbl_copy}(#{cols}) FROM STDIN WITH DELIMITER ',' CSV HEADER"
       else
         qcopy = "COPY #{tbl_copy} FROM STDIN WITH DELIMITER ',' CSV HEADER"
       end
       pg_conn.copy_data(qcopy.to_s) do
-        File.open(csv_path, 'r').each do |line|
+        File.open(csv_path, "r").each do |line|
           pg_conn.put_copy_data(line)
         end
       end
@@ -260,19 +266,19 @@ module PostgresUtility
     tables.each do |table|
       tblcls = table[:tblcls]
       tbl_copy = table[:tbl_copy]
-      raise StandardError, "#{tbl_copy} Table missing!" if !conn.tables.include?(tbl_copy)
+      raise StandardError, "#{tbl_copy} Table missing!" unless conn.tables.include?(tbl_copy)
 
       tbl = tblcls.table_name
-      if !opts[:do_not_truncate]
+      unless opts[:do_not_truncate]
         id = tblcls.primary_key
-        schema = 'public'
-        schema = tbl.split('.').first if tbl.include?('.')
-        tbl_without_schema_name = tbl.split('.').last
+        schema = "public"
+        schema = tbl.split(".").first if tbl.include?(".")
+        tbl_without_schema_name = tbl.split(".").last
         seq_name = "#{tbl_without_schema_name}_#{id}_seq"
         query += "TRUNCATE TABLE #{tbl};\n"
         # check if sequence exists
-        if tblcls.connection.
-           select_value("SELECT sequence_name FROM information_schema.sequences WHERE sequence_name = '#{seq_name}' AND sequence_schema = '#{schema}'").present?
+        if tblcls.connection
+                 .select_value("SELECT sequence_name FROM information_schema.sequences WHERE sequence_name = '#{seq_name}' AND sequence_schema = '#{schema}'").present?
           query += "ALTER SEQUENCE #{schema}.#{seq_name} RESTART;\n"
           query += "UPDATE #{tbl} SET #{id} = DEFAULT;\n"
         end
@@ -280,7 +286,7 @@ module PostgresUtility
       query += "INSERT INTO #{tbl} SELECT * FROM #{tbl_copy};"
       query += "DROP TABLE #{tbl_copy};"
     end
-    query += 'COMMIT;'
+    query += "COMMIT;"
     pg_conn.exec(query)
 
     # ensuring the sequence is reset to be > max id (postgres has a bug where sequence can sometimes can become out of sync specially when doing bulk imports)
@@ -302,7 +308,7 @@ module PostgresUtility
       table = table.table_name
     else
       conn ||= rails_connection
-      key ||= 'id'
+      key ||= "id"
     end
     seqname = "#{table}_#{key}_seq"
     unless conn.select_value("SELECT sequence_name FROM information_schema.sequences WHERE sequence_name = '#{seqname}'")
@@ -322,7 +328,7 @@ module PostgresUtility
       table = table.table_name
     else
       conn ||= rails_connection
-      key ||= 'id'
+      key ||= "id"
     end
     seqname = "#{table}_#{key}_seq"
     unless conn.select_value("SELECT sequence_name FROM information_schema.sequences WHERE sequence_name = '#{seqname}'")
@@ -368,7 +374,7 @@ module PostgresUtility
   def pg_load(filename, dbname = nil)
     dbname ||= db_name
     bz2 = false
-    if filename.to_s.ends_with?('.sql.bz2')
+    if filename.to_s.ends_with?(".sql.bz2")
       filename = filename.to_s[0..-9]
       bz2 = true
     end
@@ -403,13 +409,13 @@ module PostgresUtility
     tbl = tblcls.table_name
     stmts = ["TRUNCATE TABLE #{tbl}"]
     id = tblcls.primary_key
-    schema = 'public'
-    schema = tbl.split('.').first if tbl.include?('.')
-    tbl_without_schema_name = tbl.split('.').last
+    schema = "public"
+    schema = tbl.split(".").first if tbl.include?(".")
+    tbl_without_schema_name = tbl.split(".").last
     seq_name = "#{tbl_without_schema_name}_#{id}_seq"
     # check if sequence exists
-    if tblcls.connection.
-       select_value("SELECT sequence_name FROM information_schema.sequences
+    if tblcls.connection
+             .select_value("SELECT sequence_name FROM information_schema.sequences
         WHERE sequence_name = '#{seq_name}' AND sequence_schema = '#{schema}'").present?
       stmts += [
         "ALTER SEQUENCE #{schema}.#{seq_name} RESTART",
@@ -425,7 +431,7 @@ module PostgresUtility
   def get_random_record(klass, opt = nil)
     opt ||= {}
     c = klass.connection
-    select_clause = opt[:dense] ? "MAX(\"#{klass.primary_key}\")" : 'COUNT(*)'
+    select_clause = opt[:dense] ? "MAX(\"#{klass.primary_key}\")" : "COUNT(*)"
     cnt = c.select_value("SELECT #{select_clause} FROM \"#{klass.table_name}\"").to_i
     klass.offset(rand(cnt)).first
   end
@@ -435,7 +441,7 @@ module PostgresUtility
     Rails.logger.debug("EXEC:#{toprint} ... ")
     start = Time.zone.now
     ret = system(cmd)
-    Rails.logger.debug((ret ? 'success' : 'failed') + " (#{Time.zone.now - start} seconds)\n")
+    Rails.logger.debug((ret ? "success" : "failed") + " (#{Time.zone.now - start} seconds)\n")
     ret
   end
 
@@ -446,11 +452,11 @@ module PostgresUtility
 
     columns = model.column_names.map(&:to_sym)
     columns.delete(model.primary_key.to_sym) unless include_pkey
-    columns_string = columns.map(&:to_s).join(', ').to_s
+    columns_string = columns.map(&:to_s).join(", ").to_s
     table = model.table_name
 
     value_batches = Array(values.in_groups_of(batch_size).map do |batch|
-      batch.compact.map { |item| "(#{columns.map { |col| process_value(item[col]) }.join(', ')})" }.join(', ')
+      batch.compact.map { |item| "(#{columns.map { |col| process_value(item[col]) }.join(", ")})" }.join(", ")
     end)
 
     model.transaction do
@@ -464,9 +470,9 @@ module PostgresUtility
 
   def host_param
     host = db_connection_config[:host]
-    return "-h #{host}" if host.present? && host != 'localhost' && host != '127.0.0.1'
+    return "-h #{host}" if host.present? && host != "localhost" && host != "127.0.0.1"
 
-    ''
+    ""
   end
 
   def username
@@ -478,15 +484,15 @@ module PostgresUtility
   end
 
   def generate_temptable_name(tbl_name)
-    raise StandardError, 'Cant create temp table for missing original table' if tbl_name.blank?
+    raise StandardError, "Cant create temp table for missing original table" if tbl_name.blank?
 
-    "temp_#{tbl_name.split('.').last}_#{(Time.now.to_f * 1000).round}_#{'%03d' % rand(1000)}"
+    "temp_#{tbl_name.split(".").last}_#{(Time.now.to_f * 1000).round}_#{format("%03d", rand(1000))}"
   end
 
   # Convert values to database friendly format
   def process_value(value)
     if value.is_a?(Time)
-      "TIMESTAMP '#{value.strftime('%Y-%m-%d %H:%M:%S')}'"
+      "TIMESTAMP '#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
     else
       ActiveRecord::Base.sanitize(value)
     end

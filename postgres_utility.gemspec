@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name          = "postgres_utility"
   spec.version       = PostgresUtility::VERSION
   spec.authors       = ["sachinsaxena1996"]
-  spec.email         = ['dev@yourmechanic.com']
+  spec.email         = ["dev@yourmechanic.com"]
 
   spec.summary       = "Postgres_utility gem to perform a variety of methods on Rails app having postgres db"
   spec.description   = "Postgres_utility gem to perform a variety of methods on Rails app having postgres db"
@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   # spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
 
-  spec.metadata["allowed_push_host"] = 'https://rubygems.org'
+  spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/YourMechanic/postgres_utility"
@@ -35,10 +35,10 @@ Gem::Specification.new do |spec|
   # For more information and examples about making a new gem, checkout our
   # guide at: https://bundler.io/guides/creating_gem.html
 
-  spec.add_development_dependency 'activerecord', '5.2.6'
-  spec.add_development_dependency 'byebug'
+  spec.add_development_dependency "activerecord", "5.2.6"
+  spec.add_development_dependency "byebug"
   spec.add_dependency "pg", "1.2.3"
-  spec.add_development_dependency 'rake', '~> 13.0'
-  spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'rubocop', '~> 1.7'
+  spec.add_development_dependency "rake", "~> 13.0"
+  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "rubocop", "~> 1.7"
 end
