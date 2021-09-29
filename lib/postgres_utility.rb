@@ -438,10 +438,10 @@ module PostgresUtility
 
   def system_with_print(cmd, toprint = nil)
     toprint ||= cmd
-    Rails.logger.debug("EXEC:#{toprint} ... ")
-    start = Time.zone.now
+    puts "EXEC:#{toprint} ... "
+    start = Time.now
     ret = system(cmd)
-    Rails.logger.debug((ret ? "success" : "failed") + " (#{Time.zone.now - start} seconds)\n")
+    puts (ret ? "success" : "failed") + " (#{Time.now - start} seconds)\n"
     ret
   end
 
@@ -494,7 +494,7 @@ module PostgresUtility
     if value.is_a?(Time)
       "TIMESTAMP '#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
     else
-      ActiveRecord::Base.sanitize(value)
+      ActiveRecord::Base.sanitize_sql(value)
     end
   end
 end
