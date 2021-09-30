@@ -1,8 +1,6 @@
 # PostgresUtility
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/postgres_utility`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This awesome gem provides an api to execute multiple useful operations on ActiveRecord table having postgres as database.
 
 ## Installation
 
@@ -22,7 +20,98 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Following are use cases
+
+### To get the current db name
+```ruby
+PostgresUtility.db_name
+```
+
+### To get a db connection object
+```ruby
+PostgresUtility.rails_connection
+```
+
+### To get the db_adapter_name
+```ruby
+PostgresUtility.db_adapter_name
+```
+
+### To find if current adapter is postgresql
+```ruby
+PostgresUtility.postgresql?
+```
+
+### To find the current db_version
+```ruby
+PostgresUtility.db_version
+```
+
+### To find the database size
+```ruby
+PostgresUtility.db_size
+```
+
+### To create database
+```ruby
+PostgresUtility.create_database
+```
+
+### To recreate database
+```ruby
+PostgresUtility.recreate_database
+```
+
+### To form query that copies records from source to destination table
+```ruby
+PostgresUtility.copy_table_query(TestModel, DestinationTestModel)
+```
+
+### To perform vacuum and analyze on a table
+```ruby
+PostgresUtility.vacuum_analyze(TestModel)
+```
+
+### To dump multiple tables to a csv
+```ruby
+PostgresUtility.multi_dump_to_csv([{ tbl: TestModel, csv_path: csv_path }])
+```
+
+### To dump query results to a csv
+```ruby
+PostgresUtility.multi_dump_query_result_to_csv("select * from test_models", csv_path)
+```
+
+### To fix table sequence
+```ruby
+PostgresUtility.fix_sequence_value(TestModel)
+```
+
+### To fix table sequence with a cap value
+```ruby
+PostgresUtility.fix_sequence_value_with_cap(TestModel)
+```
+
+### To a random record from table
+```ruby
+PostgresUtility.get_random_record(TestModel)
+```
+
+### To execute a command with system with print
+```ruby
+PostgresUtility.system_with_print("ls")
+```
+
+### To batch_insert of records
+```ruby
+PostgresUtility.batch_insert(model: TestModel, values: [{ id: 10, data: "new_record_1" },
+                                                              { id: 11, data: "new_record_2" }])
+```
+
+### To save data of a given table to a given file
+```ruby
+PostgresUtility.pg_save_data(file_path, 'test_models')
+```
 
 ## Development
 

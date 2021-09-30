@@ -57,7 +57,8 @@ RSpec.describe PostgresUtility do
 
   describe ".recreate_database" do
     xit "false if db already exists" do
-      expect(PostgresUtility.recreate_database).to eq(false)
+      allow(Rails.env).to receive(test?).and_return(true)
+      expect(PostgresUtility.recreate_database).to eq(nil)
     end
   end
 
@@ -132,9 +133,38 @@ RSpec.describe PostgresUtility do
 
   describe ".batch_insert" do
     xit "executes batch insert" do
-      PostgresUtility.batch_insert(model: TestModel, values: [{ id: 10, data: "new_record_1" },
-                                                              { id: 11, data: "new_record_2" }])
+      PostgresUtility.batch_insert(model: TestModel, values: [{ data: "new_record_1" },
+                                                              { data: "new_record_2" }])
       expect(TestModel.where(data: "new_record_1")).to be
+    end
+  end
+
+  describe ".pg_save_data" do
+    let!(:samp_record) { TestModel.create(data: "good copy text") }
+    let(:file_path) { "spec/fixtures/test_model_data_save.txt" }
+
+    it "saves given table data to given file" do
+      PostgresUtility.pg_save_data(file_path, "test_models")
+      expect(File.exist?(file_path)).to eq(true)
+      File.delete(file_path)
+    end
+  end
+
+  describe ".truncate_table" do
+    let!(:samp_record) { TestModel.create(data: "good copy text") }
+    it "truncates given table" do
+      PostgresUtility.truncate_table(PostgresUtility.rails_connection, "test_models")
+      expect(TestModel.count).to eq(0)
+    end
+  end
+
+  describe ".multi_truncate_reset_populate_from_csv" do
+    let!(:samp_record) { TestModel.create(data: "good copy text") }
+    let(:csv_path) { "spec/fixtures/test_model_fixture.csv" }
+
+    it "truncates table and populates from a csv" do
+      PostgresUtility.multi_truncate_reset_populate_from_csv([{ tblcls: TestModel, csv_path: csv_path }])
+      expect(TestModel.count).to eq(8)
     end
   end
 end
