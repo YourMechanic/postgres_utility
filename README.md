@@ -32,6 +32,16 @@ PostgresUtility.db_name
 PostgresUtility.rails_connection
 ```
 
+### Boolean method to check if a migration is pending
+```ruby
+PostgresUtility.pending_migration?
+```
+
+### To get the db connection config object
+```ruby
+PostgresUtility.db_connection_config
+```
+
 ### To get the db_adapter_name
 ```ruby
 PostgresUtility.db_adapter_name
@@ -40,6 +50,11 @@ PostgresUtility.db_adapter_name
 ### To find if current adapter is postgresql
 ```ruby
 PostgresUtility.postgresql?
+```
+
+### To find the current migration version
+```ruby
+PostgresUtility.migration_version
 ```
 
 ### To find the current db_version
@@ -55,6 +70,11 @@ PostgresUtility.db_size
 ### To create database
 ```ruby
 PostgresUtility.create_database
+```
+
+### To drop database
+```ruby
+PostgresUtility.drop_database
 ```
 
 ### To recreate database
@@ -112,6 +132,68 @@ PostgresUtility.batch_insert(model: TestModel, values: [{ id: 10, data: "new_rec
 ```ruby
 PostgresUtility.pg_save_data(file_path, 'test_models')
 ```
+
+### truncates a given table
+```ruby
+PostgresUtility.truncate_table(PostgresUtility.rails_connection, "test_models")
+```
+
+### truncates table and populates from a csv
+```ruby
+PostgresUtility.multi_truncate_reset_populate_from_csv([{ tblcls: TestModel, csv_path: csv_path }])
+```
+
+### To fix sequence value of a table
+```ruby
+PostgresUtility.fix_sequence_value(TestModel)
+```
+
+### To fix sequence value of a table with cap
+```ruby
+PostgresUtility.fix_sequence_value_with_cap(TestModel)
+```
+
+### To set up primary key of a table
+```ruby
+PostgresUtility.setup_primary_key(TestModel, 'user_id')
+```
+
+### To delete primary key of a table
+```ruby
+PostgresUtility.delete_primary_key(TestModel)
+```
+
+### To dump db to a file
+```ruby
+PostgresUtility.pg_dump_custom('Test_Model.sql')
+```
+
+### To restore data and schema from a file
+```ruby
+PostgresUtility.pg_restore_data_and_schema('db_Test_Model.sql')
+```
+
+### To load db
+```ruby
+PostgresUtility.pg_load('db_Test_Model.sql')
+```
+
+### To truncate a table
+```ruby
+PostgresUtility.truncate_table(conn, 'test_models')
+```
+
+### To delete records from a table
+```ruby
+PostgresUtility.clear_table(conn, 'test_models')
+```
+
+### To truncate table and reset sequence
+```ruby
+PostgresUtility.clear_table_reset_sequence(TestModel)
+```
+
+
 
 ## Development
 
