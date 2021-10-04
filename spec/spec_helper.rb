@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "postgres_utility"
+require 'postgres_utility'
 
-require "fixtures/test_model"
-require "fixtures/destination_test_model"
+require 'fixtures/test_model'
+require 'fixtures/destination_test_model'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = '.rspec_status'
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
@@ -21,12 +21,12 @@ RSpec.configure do |config|
     # I do not use database users or password for the tests, using ident authentication instead
 
     ActiveRecord::Base.establish_connection(
-      adapter: "postgresql",
-      host: "localhost",
-      username: "postgres",
-      password: "postgres",
+      adapter: 'postgresql',
+      host: 'localhost',
+      username: 'postgres',
+      password: 'postgres',
       port: 5432,
-      database: "pg_utility_db"
+      database: 'pg_utility_db'
     )
     ActiveRecord::Base.connection.execute %{
         SET client_min_messages TO warning;
@@ -38,14 +38,14 @@ RSpec.configure do |config|
   rescue StandardError => e
     puts "Exception: #{e}"
     ActiveRecord::Base.establish_connection(
-      adapter: "postgresql",
-      host: "localhost",
-      username: "postgres",
-      password: "postgres",
+      adapter: 'postgresql',
+      host: 'localhost',
+      username: 'postgres',
+      password: 'postgres',
       port: 5432,
-      database: "postgres"
+      database: 'postgres'
     )
-    ActiveRecord::Base.connection.execute "CREATE DATABASE pg_utility_db"
+    ActiveRecord::Base.connection.execute 'CREATE DATABASE pg_utility_db'
     retry
   end
 end
