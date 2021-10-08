@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'postgres_utility/version'
+require 'byebug'
 
 # rubocop:disable Layout/LineLength, Metrics/ModuleLength
 
@@ -456,7 +457,11 @@ module PostgresUtility
     table = model.table_name
 
     value_batches = Array(values.in_groups_of(batch_size).map do |batch|
-      batch.compact.map { |item| "(#{columns.map { |col| process_value(item[col]) }.join(', ')})" }.join(', ')
+      batch.compact.map do |item|
+        "(#{columns.map do |col|
+              "'#{process_value(item[col])}'"
+            end.join(', ')})"
+      end.join(', ')
     end)
 
     model.transaction do
@@ -494,7 +499,7 @@ module PostgresUtility
     if value.is_a?(Time)
       "TIMESTAMP '#{value.strftime('%Y-%m-%d %H:%M:%S')}'"
     else
-      ActiveRecord::Base.sanitize_sql(value)
+      ActiveRecord::Base.respond_to?(:sanitize_sql) ? ActiveRecord::Base.sanitize_sql(value) : ActiveRecord::Base.sanitize(value)
     end
   end
 end
