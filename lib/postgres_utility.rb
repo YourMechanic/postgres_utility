@@ -459,7 +459,7 @@ module PostgresUtility
     value_batches = Array(values.in_groups_of(batch_size).map do |batch|
       batch.compact.map do |item|
         "(#{columns.map do |col|
-              "'#{process_value(item[col])}'"
+              process_value(item[col]).instance_of?(String) ? "'#{process_value(item[col])}'" : process_value(item[col])
             end.join(', ')})"
       end.join(', ')
     end)
