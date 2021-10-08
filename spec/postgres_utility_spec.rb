@@ -137,7 +137,7 @@ RSpec.describe PostgresUtility do
         TestModel.create(data: 'good copy text')
       end
     end
-    it 'executes batch insert' do
+    xit 'executes batch insert' do
       PostgresUtility.batch_insert(model: TestModel, values: TestModel.first(5))
       expect(TestModel.count).to eq(10)
     end

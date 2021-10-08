@@ -466,7 +466,7 @@ module PostgresUtility
 
     model.transaction do
       value_batches.each do |vb|
-        rails_connection.execute("INSERT INTO #{table}(#{columns_string}) VALUES #{vb}")
+        rails_connection.execute("INSERT INTO #{table}(#{columns_string}) VALUES #{vb.gsub!(', ,', ',')}")
       end
     end
   end
