@@ -32,8 +32,8 @@ RSpec.configure do |config|
         SET client_min_messages TO warning;
         DROP TABLE IF EXISTS test_models;
         DROP TABLE IF EXISTS destination_test_models;
-        CREATE TABLE test_models (id serial PRIMARY KEY, data text);
-        CREATE TABLE destination_test_models (id serial PRIMARY KEY, data text);
+        CREATE TABLE test_models (id serial PRIMARY KEY, data VARCHAR ( 255 ));
+        CREATE TABLE destination_test_models (id serial PRIMARY KEY, data VARCHAR ( 255 ));
       }
   rescue StandardError => e
     puts "Exception: #{e}"

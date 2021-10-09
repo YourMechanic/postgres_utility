@@ -132,10 +132,14 @@ RSpec.describe PostgresUtility do
   end
 
   describe '.batch_insert' do
+    before(:each) do
+      5.times do
+        TestModel.create(data: 'good copy text')
+      end
+    end
     xit 'executes batch insert' do
-      PostgresUtility.batch_insert(model: TestModel, values: [{ data: 'new_record_1' },
-                                                              { data: 'new_record_2' }])
-      expect(TestModel.where(data: 'new_record_1')).to be
+      PostgresUtility.batch_insert(model: TestModel, values: TestModel.first(5))
+      expect(TestModel.count).to eq(10)
     end
   end
 
