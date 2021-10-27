@@ -246,8 +246,8 @@ module PostgresUtility
       # transaction, we will manually need to drop this table
       pg_conn.exec("CREATE TABLE #{tbl_copy} (LIKE #{tbl} INCLUDING DEFAULTS)")
       #   pg_conn.exec("DROP TABLE IF EXISTS #{tbl_copy}")
-      if opts[:column_names].present? && opts[:column_names].is_a?(Array)
-        cols = opts[:column_names].join(',')
+      if table[:column_names].present? && table[:column_names].is_a?(Array)
+        cols = table[:column_names].join(',')
         qcopy = "COPY #{tbl_copy}(#{cols}) FROM STDIN WITH DELIMITER ',' CSV HEADER"
       else
         qcopy = "COPY #{tbl_copy} FROM STDIN WITH DELIMITER ',' CSV HEADER"
