@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    postgres_utility (1.0.0)
+    postgres_utility (1.0.2)
 
 GEM
   remote: https://rubygems.org/
