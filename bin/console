@@ -12,4 +12,15 @@ require 'postgres_utility'
 # Pry.start
 
 require 'irb'
+
+database_config = YAML.load_file('config/database.yml')&.dig('development') || {
+      adapter: 'postgresql',
+      host: 'localhost',
+      username: 'postgres',
+      password: 'postgres',
+      port: 5432,
+      database: 'pg_utility_db'
+    }
+ActiveRecord::Base.establish_connection( database_config )
+
 IRB.start(__FILE__)
