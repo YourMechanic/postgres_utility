@@ -15,7 +15,8 @@ RSpec.describe PostgresUtility do
 
   describe '.db_name' do
     it 'returns the db name' do
-      expect(PostgresUtility.db_name).to eq('pg_utility_db')
+      expect(PostgresUtility.db_name).to eq(ActiveRecord::Base.connection_db_config.configuration_hash[:database])
+      expect(PostgresUtility.db_name).to eq(ActiveRecord::Base.connection.raw_connection.conninfo_hash[:dbname])
     end
   end
 
