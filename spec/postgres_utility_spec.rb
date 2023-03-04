@@ -49,6 +49,12 @@ RSpec.describe PostgresUtility do
     end
   end
 
+  describe '.table_sizes' do
+    it 'gives the tables and associated index sizes' do
+      expect(PostgresUtility.table_sizes).to be
+    end
+  end
+
   describe '.create_database' do
     it 'returns false if db already exists' do
       expect(PostgresUtility.create_database).to eq(false)
