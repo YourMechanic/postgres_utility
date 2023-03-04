@@ -43,7 +43,7 @@ module PostgresUtility
   end
 
   def db_connection_config
-    config = ActiveRecord::Base.connection_config
+    config = ActiveRecord::Base.connection_db_config.configuration_hash
     config = rails_connection.config if config[:adapter].match(/makara/i)
     config
   end
@@ -66,6 +66,28 @@ module PostgresUtility
 
   def db_size
     rails_connection.select_value("select pg_database_size('#{db_name}');").to_i
+  end
+
+  # Returns the table size and the size of its associated indexes : https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-DBSIZE
+  def table_sizes(to_human: false)
+    query = "SELECT table_name, "
+
+    query += 'pg_size_pretty(' if to_human
+    query += "pg_table_size(quote_ident(table_name))"
+    query += ')' if to_human
+    query += ', '
+
+    query += 'pg_size_pretty(' if to_human
+    query += 'pg_indexes_size(quote_ident(table_name))'
+    query += ')' if to_human
+
+    query += "FROM information_schema.tables
+              WHERE table_schema = 'public'
+              ORDER BY table_name;"
+
+              puts query
+
+    rails_connection.select_rows(query).inject({}) {|memo, row| memo[row[0]] = {table: row[1], indexes: row[2]}; memo}
   end
 
   # Returns true if created, false if already exists, raise if failed.

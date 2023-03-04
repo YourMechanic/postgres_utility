@@ -15,7 +15,8 @@ RSpec.describe PostgresUtility do
 
   describe '.db_name' do
     it 'returns the db name' do
-      expect(PostgresUtility.db_name).to eq('pg_utility_db')
+      expect(PostgresUtility.db_name).to eq(ActiveRecord::Base.connection_db_config.configuration_hash[:database])
+      expect(PostgresUtility.db_name).to eq(ActiveRecord::Base.connection.raw_connection.conninfo_hash[:dbname])
     end
   end
 
@@ -46,6 +47,12 @@ RSpec.describe PostgresUtility do
   describe '.db_size' do
     it 'gives the database size' do
       expect(PostgresUtility.db_size).to be
+    end
+  end
+
+  describe '.table_sizes' do
+    it 'gives the tables and associated index sizes' do
+      expect(PostgresUtility.table_sizes).to be
     end
   end
 

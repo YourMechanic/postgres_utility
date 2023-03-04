@@ -19,15 +19,16 @@ RSpec.configure do |config|
   config.before(:suite) do
     # we create a test database if it does not exist
     # I do not use database users or password for the tests, using ident authentication instead
-
-    ActiveRecord::Base.establish_connection(
+    database_config = {
       adapter: 'postgresql',
       host: 'localhost',
       username: 'postgres',
       password: 'postgres',
       port: 5432,
       database: 'pg_utility_db'
-    )
+    }
+    database_config = YAML.load_file('config/database.yml')&.dig('test') if File.exist?('config/database.yml')
+    ActiveRecord::Base.establish_connection( database_config )
     ActiveRecord::Base.connection.execute %{
         SET client_min_messages TO warning;
         DROP TABLE IF EXISTS test_models;
